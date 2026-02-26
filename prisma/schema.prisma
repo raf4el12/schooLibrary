@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  LIBRARIAN
+}
+
+enum LoanStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(LIBRARIAN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Book {
+  id              String   @id @default(uuid())
+  title           String
+  author          String
+  isbn            String?  @unique
+  totalCopies     Int      @default(1)
+  availableCopies Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  loans           Loan[]
+
+  @@map("books")
+}
+
+model Borrower {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  grade     String?
+  type      String   @default("STUDENT") // STUDENT | TEACHER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  loans     Loan[]
+
+  @@map("borrowers")
+}
+
+model Loan {
+  id         String     @id @default(uuid())
+  borrowerId String
+  bookId     String
+  status     LoanStatus @default(ACTIVE)
+  borrowedAt DateTime   @default(now())
+  dueDate    DateTime
+  returnedAt DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  borrower Borrower @relation(fields: [borrowerId], references: [id])
+  book     Book     @relation(fields: [bookId], references: [id])
+
+  @@map("loans")
+}
