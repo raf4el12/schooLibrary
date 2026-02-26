@@ -3,6 +3,6 @@ const { getHealth } = require("./health.controller");
 
 const router = Router();
 
-router.get("/health", getHealth);
+router.get("/", getHealth);
 
 module.exports = router;
