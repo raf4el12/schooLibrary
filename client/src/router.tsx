@@ -4,6 +4,7 @@ import LayoutAdmin from './components/layout/LayoutAdmin'
 import LayoutAuthPage from './components/layout/LayoutAuthPage'
 import LoadingPage from './components/commons/LoadingPage'
 
+const LandingPage = lazy(() => import('./pages/landing/LandingPage'))
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 const BookPage = lazy(() => import('./pages/books/BookPage'))
@@ -15,6 +16,14 @@ function SuspenseWrapper({ children }: { children: React.ReactNode }) {
 }
 
 const router = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <SuspenseWrapper>
+        <LandingPage />
+      </SuspenseWrapper>
+    ),
+  },
   {
     path: 'admin',
     element: <LayoutAdmin />,
@@ -77,17 +86,11 @@ const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <LayoutAuthPage />,
-    children: [
-      {
-        path: '*',
-        element: (
-          <SuspenseWrapper>
-            <LoginPage />
-          </SuspenseWrapper>
-        ),
-      },
-    ],
+    element: (
+      <SuspenseWrapper>
+        <LandingPage />
+      </SuspenseWrapper>
+    ),
   },
 ])
 

@@ -1,4 +1,4 @@
-import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import GroupIcon from '@mui/icons-material/Group'
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'
@@ -31,8 +31,11 @@ export default function SidebarBase() {
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col z-10">
       <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-100">
-        <AutoStoriesIcon className="text-blue-700" />
-        <span className="text-lg font-bold text-gray-800">SchoolLibrary</span>
+        <MenuBookIcon className="text-blue-700" />
+        <div className="flex flex-col leading-tight">
+          <span className="text-base font-bold text-gray-800">BiblioTK</span>
+          <span className="text-[10px] text-gray-400 font-medium">21578</span>
+        </div>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

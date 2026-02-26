@@ -1,4 +1,4 @@
-import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useLogin } from '../../hook/auth/useLogin'
@@ -28,9 +28,10 @@ export default function LoginCard() {
     <div className="flex items-center justify-center min-h-screen min-w-full bg-gray-50">
       <div className="border border-gray-200 rounded-2xl shadow-lg p-8 w-full max-w-md bg-white">
         <div className="flex flex-col items-center mb-6">
-          <AutoStoriesIcon sx={{ fontSize: 48 }} className="text-blue-700 mb-2" />
-          <h1 className="text-2xl font-bold text-gray-800">SchoolLibrary</h1>
-          <p className="text-gray-500 text-sm">Inicia sesión para continuar</p>
+          <MenuBookIcon sx={{ fontSize: 48 }} className="text-blue-700 mb-2" />
+          <h1 className="text-2xl font-bold text-gray-800">BiblioTK <span className="text-blue-600">21578</span></h1>
+          <p className="text-gray-400 text-xs">Escuela Bicentenario</p>
+          <p className="text-gray-500 text-sm mt-1">Inicia sesión para continuar</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
