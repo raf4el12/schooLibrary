@@ -7,9 +7,13 @@ import LoadingPage from './components/commons/LoadingPage'
 const LandingPage = lazy(() => import('./pages/landing/LandingPage'))
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'))
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
+const AuthorPage = lazy(() => import('./pages/authors/AuthorPage'))
+const CategoryPage = lazy(() => import('./pages/categories/CategoryPage'))
 const BookPage = lazy(() => import('./pages/books/BookPage'))
+const BookCopyPage = lazy(() => import('./pages/book-copies/BookCopyPage'))
 const BorrowerPage = lazy(() => import('./pages/borrowers/BorrowerPage'))
 const LoanPage = lazy(() => import('./pages/loans/LoanPage'))
+const PenaltyPage = lazy(() => import('./pages/penalties/PenaltyPage'))
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<LoadingPage />}>{children}</Suspense>
@@ -37,10 +41,34 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: 'authors',
+        element: (
+          <SuspenseWrapper>
+            <AuthorPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'categories',
+        element: (
+          <SuspenseWrapper>
+            <CategoryPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
         path: 'books',
         element: (
           <SuspenseWrapper>
             <BookPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'book-copies',
+        element: (
+          <SuspenseWrapper>
+            <BookCopyPage />
           </SuspenseWrapper>
         ),
       },
@@ -57,6 +85,14 @@ const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <LoanPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'penalties',
+        element: (
+          <SuspenseWrapper>
+            <PenaltyPage />
           </SuspenseWrapper>
         ),
       },

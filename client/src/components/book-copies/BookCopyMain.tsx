@@ -9,20 +9,34 @@ import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
-import BookForm from './BookForm'
+import BookCopyForm from './BookCopyForm'
 import ConfirmDialog from '../commons/ConfirmDialog'
-import { useBookModule } from './hooks/useBookModule'
-import { useAuthors } from '../../hook/authors/useAuthors'
-import { useCategories } from '../../hook/categories/useCategories'
+import { useBookCopyModule } from './hooks/useBookCopyModule'
+import { useBooks } from '../../hook/books/useBooks'
+import type { CopyCondition } from '../../types/book-copy'
 
-export default function BookMain() {
+const conditionLabels: Record<CopyCondition, string> = {
+  NEW: 'Nuevo',
+  GOOD: 'Bueno',
+  FAIR: 'Regular',
+  DAMAGED: 'Dañado',
+}
+
+const conditionColors: Record<CopyCondition, 'success' | 'info' | 'warning' | 'error'> = {
+  NEW: 'success',
+  GOOD: 'info',
+  FAIR: 'warning',
+  DAMAGED: 'error',
+}
+
+export default function BookCopyMain() {
   const {
-    books,
+    copies,
     isPending,
     search,
     setSearch,
     formOpen,
-    editBook,
+    editCopy,
     deleteId,
     setDeleteId,
     openCreateForm,
@@ -32,28 +46,27 @@ export default function BookMain() {
     handleDelete,
     isFormLoading,
     isDeleteLoading,
-  } = useBookModule()
+  } = useBookCopyModule()
 
-  const { data: authors } = useAuthors()
-  const { data: categories } = useCategories()
+  const { data: books } = useBooks()
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Libros</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Ejemplares</h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={openCreateForm}
         >
-          Nuevo libro
+          Nuevo ejemplar
         </Button>
       </div>
 
       <div className="mb-4">
         <TextField
           size="small"
-          placeholder="Buscar por título, autor o ISBN..."
+          placeholder="Buscar por código o título de libro..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           slotProps={{
@@ -79,66 +92,57 @@ export default function BookMain() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
-                  <th className="text-left px-4 py-3">Título</th>
-                  <th className="text-left px-4 py-3">Autores</th>
-                  <th className="text-left px-4 py-3">Categorías</th>
-                  <th className="text-left px-4 py-3">ISBN</th>
-                  <th className="text-center px-4 py-3">Ejemplares</th>
+                  <th className="text-left px-4 py-3">Código</th>
+                  <th className="text-left px-4 py-3">Libro</th>
+                  <th className="text-center px-4 py-3">Condición</th>
+                  <th className="text-center px-4 py-3">Disponible</th>
                   <th className="text-center px-4 py-3">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {books.map((book) => (
-                  <tr key={book.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{book.title}</td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {book.authors?.map((a) => a.name).join(', ') || '—'}
+                {copies.map((copy) => (
+                  <tr key={copy.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-mono font-medium">
+                      {copy.inventoryCode}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 flex-wrap">
-                        {book.categories?.map((c) => (
-                          <Chip
-                            key={c.id}
-                            label={c.prefix}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                        {(!book.categories || book.categories.length === 0) && '—'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {book.isbn || '—'}
+                    <td className="px-4 py-3">{copy.book?.title ?? '—'}</td>
+                    <td className="px-4 py-3 text-center">
+                      <Chip
+                        label={conditionLabels[copy.condition]}
+                        size="small"
+                        color={conditionColors[copy.condition]}
+                        variant="outlined"
+                      />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <Chip
-                        label={book._count?.copies ?? 0}
+                        label={copy.isAvailable ? 'Sí' : 'No'}
                         size="small"
-                        color={(book._count?.copies ?? 0) > 0 ? 'success' : 'default'}
+                        color={copy.isAvailable ? 'success' : 'error'}
                         variant="outlined"
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <IconButton
                         size="small"
-                        onClick={() => openEditForm(book)}
+                        onClick={() => openEditForm(copy)}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => setDeleteId(book.id)}
+                        onClick={() => setDeleteId(copy.id)}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </td>
                   </tr>
                 ))}
-                {books.length === 0 && (
+                {copies.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                      No se encontraron libros
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                      No se encontraron ejemplares
                     </td>
                   </tr>
                 )}
@@ -148,20 +152,19 @@ export default function BookMain() {
         </Card>
       )}
 
-      <BookForm
+      <BookCopyForm
         open={formOpen}
         onClose={closeForm}
         onSubmit={handleSubmitForm}
         loading={isFormLoading}
-        editData={editBook}
-        authors={authors ?? []}
-        categories={categories ?? []}
+        editData={editCopy}
+        books={books ?? []}
       />
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Eliminar libro"
-        message="¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer."
+        title="Eliminar ejemplar"
+        message="¿Estás seguro de que deseas eliminar este ejemplar? Esta acción no se puede deshacer."
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         loading={isDeleteLoading}

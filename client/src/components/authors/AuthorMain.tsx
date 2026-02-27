@@ -4,25 +4,22 @@ import EditIcon from '@mui/icons-material/Edit'
 import SearchIcon from '@mui/icons-material/Search'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
-import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
-import BookForm from './BookForm'
+import AuthorForm from './AuthorForm'
 import ConfirmDialog from '../commons/ConfirmDialog'
-import { useBookModule } from './hooks/useBookModule'
-import { useAuthors } from '../../hook/authors/useAuthors'
-import { useCategories } from '../../hook/categories/useCategories'
+import { useAuthorModule } from './hooks/useAuthorModule'
 
-export default function BookMain() {
+export default function AuthorMain() {
   const {
-    books,
+    authors,
     isPending,
     search,
     setSearch,
     formOpen,
-    editBook,
+    editAuthor,
     deleteId,
     setDeleteId,
     openCreateForm,
@@ -32,28 +29,25 @@ export default function BookMain() {
     handleDelete,
     isFormLoading,
     isDeleteLoading,
-  } = useBookModule()
-
-  const { data: authors } = useAuthors()
-  const { data: categories } = useCategories()
+  } = useAuthorModule()
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Libros</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Autores</h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={openCreateForm}
         >
-          Nuevo libro
+          Nuevo autor
         </Button>
       </div>
 
       <div className="mb-4">
         <TextField
           size="small"
-          placeholder="Buscar por título, autor o ISBN..."
+          placeholder="Buscar por nombre..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           slotProps={{
@@ -79,66 +73,39 @@ export default function BookMain() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
-                  <th className="text-left px-4 py-3">Título</th>
-                  <th className="text-left px-4 py-3">Autores</th>
-                  <th className="text-left px-4 py-3">Categorías</th>
-                  <th className="text-left px-4 py-3">ISBN</th>
-                  <th className="text-center px-4 py-3">Ejemplares</th>
+                  <th className="text-left px-4 py-3">Nombre</th>
+                  <th className="text-center px-4 py-3">Libros</th>
                   <th className="text-center px-4 py-3">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {books.map((book) => (
-                  <tr key={book.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{book.title}</td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {book.authors?.map((a) => a.name).join(', ') || '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 flex-wrap">
-                        {book.categories?.map((c) => (
-                          <Chip
-                            key={c.id}
-                            label={c.prefix}
-                            size="small"
-                            variant="outlined"
-                          />
-                        ))}
-                        {(!book.categories || book.categories.length === 0) && '—'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {book.isbn || '—'}
-                    </td>
+                {authors.map((author) => (
+                  <tr key={author.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium">{author.name}</td>
                     <td className="px-4 py-3 text-center">
-                      <Chip
-                        label={book._count?.copies ?? 0}
-                        size="small"
-                        color={(book._count?.copies ?? 0) > 0 ? 'success' : 'default'}
-                        variant="outlined"
-                      />
+                      {author._count?.books ?? 0}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <IconButton
                         size="small"
-                        onClick={() => openEditForm(book)}
+                        onClick={() => openEditForm(author)}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => setDeleteId(book.id)}
+                        onClick={() => setDeleteId(author.id)}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </td>
                   </tr>
                 ))}
-                {books.length === 0 && (
+                {authors.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                      No se encontraron libros
+                    <td colSpan={3} className="px-4 py-8 text-center text-gray-400">
+                      No se encontraron autores
                     </td>
                   </tr>
                 )}
@@ -148,20 +115,18 @@ export default function BookMain() {
         </Card>
       )}
 
-      <BookForm
+      <AuthorForm
         open={formOpen}
         onClose={closeForm}
         onSubmit={handleSubmitForm}
         loading={isFormLoading}
-        editData={editBook}
-        authors={authors ?? []}
-        categories={categories ?? []}
+        editData={editAuthor}
       />
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Eliminar libro"
-        message="¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer."
+        title="Eliminar autor"
+        message="¿Estás seguro de que deseas eliminar este autor? Esta acción no se puede deshacer."
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         loading={isDeleteLoading}

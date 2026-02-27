@@ -48,7 +48,7 @@ export default function BorrowerMain() {
       <div className="mb-4">
         <TextField
           size="small"
-          placeholder="Buscar por nombre, email o grado..."
+          placeholder="Buscar por nombre, código, email o grado..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           slotProps={{
@@ -74,16 +74,19 @@ export default function BorrowerMain() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
+                  <th className="text-left px-4 py-3">Código</th>
                   <th className="text-left px-4 py-3">Nombre</th>
                   <th className="text-left px-4 py-3">Email</th>
                   <th className="text-left px-4 py-3">Grado</th>
                   <th className="text-center px-4 py-3">Tipo</th>
+                  <th className="text-center px-4 py-3">Estado</th>
                   <th className="text-center px-4 py-3">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {borrowers.map((b) => (
                   <tr key={b.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-mono font-medium">{b.code}</td>
                     <td className="px-4 py-3 font-medium">{b.name}</td>
                     <td className="px-4 py-3 text-gray-500">
                       {b.email || '—'}
@@ -94,6 +97,14 @@ export default function BorrowerMain() {
                         label={b.type === 'STUDENT' ? 'Estudiante' : 'Profesor'}
                         size="small"
                         color={b.type === 'STUDENT' ? 'primary' : 'secondary'}
+                        variant="outlined"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Chip
+                        label={b.isActive ? 'Activo' : 'Suspendido'}
+                        size="small"
+                        color={b.isActive ? 'success' : 'error'}
                         variant="outlined"
                       />
                     </td>
@@ -114,7 +125,7 @@ export default function BorrowerMain() {
                 {borrowers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={7}
                       className="px-4 py-8 text-center text-gray-400"
                     >
                       No se encontraron prestatarios

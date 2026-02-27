@@ -8,12 +8,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
 import LoanForm from './LoanForm'
+import LoanReturnForm from './LoanReturnForm'
 import ConfirmDialog from '../commons/ConfirmDialog'
 import { useLoanModule } from './hooks/useLoanModule'
 import type { LoanStatus } from '../../types/loan'
@@ -33,22 +29,21 @@ const statusLabels: Record<LoanStatus, string> = {
 export default function LoanMain() {
   const {
     loans,
-    books,
-    borrowers,
     isPending,
     statusFilter,
     setStatusFilter,
     formOpen,
+    returnOpen,
     deleteId,
     setDeleteId,
-    returnId,
-    setReturnId,
     openCreateForm,
     closeForm,
-    handleSubmitForm,
-    handleReturn,
+    openReturnForm,
+    closeReturnForm,
+    handleSubmitBorrow,
+    handleSubmitReturn,
     handleDelete,
-    isFormLoading,
+    isBorrowLoading,
     isReturnLoading,
     isDeleteLoading,
   } = useLoanModule()
@@ -57,13 +52,23 @@ export default function LoanMain() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Préstamos</h1>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={openCreateForm}
-        >
-          Nuevo préstamo
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outlined"
+            color="success"
+            startIcon={<KeyboardReturnIcon />}
+            onClick={openReturnForm}
+          >
+            Devolver
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={openCreateForm}
+          >
+            Nuevo préstamo
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4">
@@ -92,6 +97,7 @@ export default function LoanMain() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
+                  <th className="text-left px-4 py-3">Código</th>
                   <th className="text-left px-4 py-3">Libro</th>
                   <th className="text-left px-4 py-3">Prestatario</th>
                   <th className="text-left px-4 py-3">Fecha préstamo</th>
@@ -103,10 +109,18 @@ export default function LoanMain() {
               <tbody className="divide-y divide-gray-100">
                 {loans.map((loan) => (
                   <tr key={loan.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">
-                      {loan.book.title}
+                    <td className="px-4 py-3 font-mono">
+                      {loan.bookCopy?.inventoryCode ?? '—'}
                     </td>
-                    <td className="px-4 py-3">{loan.borrower.name}</td>
+                    <td className="px-4 py-3 font-medium">
+                      {loan.bookCopy?.book?.title ?? '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      {loan.borrower?.name}
+                      <span className="text-gray-400 ml-1 text-xs">
+                        ({loan.borrower?.code})
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       {new Date(loan.borrowedAt).toLocaleDateString()}
                     </td>
@@ -122,16 +136,6 @@ export default function LoanMain() {
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {loan.status === 'ACTIVE' && (
-                        <IconButton
-                          size="small"
-                          color="success"
-                          title="Devolver"
-                          onClick={() => setReturnId(loan.id)}
-                        >
-                          <KeyboardReturnIcon fontSize="small" />
-                        </IconButton>
-                      )}
                       <IconButton
                         size="small"
                         color="error"
@@ -145,7 +149,7 @@ export default function LoanMain() {
                 {loans.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-8 text-center text-gray-400"
                     >
                       No se encontraron préstamos
@@ -161,34 +165,16 @@ export default function LoanMain() {
       <LoanForm
         open={formOpen}
         onClose={closeForm}
-        onSubmit={handleSubmitForm}
-        loading={isFormLoading}
-        books={books}
-        borrowers={borrowers}
+        onSubmit={handleSubmitBorrow}
+        loading={isBorrowLoading}
       />
 
-      {/* Return confirmation dialog */}
-      <Dialog open={!!returnId} onClose={() => setReturnId(null)}>
-        <DialogTitle>Devolver libro</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            ¿Confirmas la devolución de este libro?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReturnId(null)} disabled={isReturnLoading}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleReturn}
-            variant="contained"
-            color="success"
-            disabled={isReturnLoading}
-          >
-            {isReturnLoading ? 'Procesando...' : 'Confirmar devolución'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <LoanReturnForm
+        open={returnOpen}
+        onClose={closeReturnForm}
+        onSubmit={handleSubmitReturn}
+        loading={isReturnLoading}
+      />
 
       <ConfirmDialog
         open={!!deleteId}

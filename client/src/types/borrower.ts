@@ -4,10 +4,13 @@ export type BorrowerType = 'STUDENT' | 'TEACHER'
 
 export interface Borrower {
   id: string
+  code: string
   name: string
   email: string | null
   grade: string | null
   type: BorrowerType
+  isActive: boolean
+  _count?: { loans: number; penalties: number }
   createdAt: string
   updatedAt: string
 }

@@ -1,14 +1,19 @@
 import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import ListItemText from '@mui/material/ListItemText'
+import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { bookCreateSchema, type BookCreateDto } from '../../types/book'
 import type { Book } from '../../types/book'
+import type { Author } from '../../types/author'
+import type { Category } from '../../types/category'
 
 interface BookFormProps {
   open: boolean
@@ -16,6 +21,8 @@ interface BookFormProps {
   onSubmit: (data: BookCreateDto) => void
   loading?: boolean
   editData?: Book | null
+  authors: Author[]
+  categories: Category[]
 }
 
 export default function BookForm({
@@ -24,11 +31,14 @@ export default function BookForm({
   onSubmit,
   loading,
   editData,
+  authors,
+  categories,
 }: BookFormProps) {
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<BookCreateDto>({
     resolver: zodResolver(bookCreateSchema),
@@ -38,12 +48,13 @@ export default function BookForm({
     if (editData) {
       reset({
         title: editData.title,
-        author: editData.author,
         isbn: editData.isbn ?? '',
-        totalCopies: editData.totalCopies,
+        publishedYear: editData.publishedYear ?? '',
+        authorIds: editData.authors?.map((a) => a.id) ?? [],
+        categoryIds: editData.categories?.map((c) => c.id) ?? [],
       })
     } else {
-      reset({ title: '', author: '', isbn: '', totalCopies: 1 })
+      reset({ title: '', isbn: '', publishedYear: '', authorIds: [], categoryIds: [] })
     }
   }, [editData, reset, open])
 
@@ -60,24 +71,83 @@ export default function BookForm({
             helperText={errors.title?.message}
           />
           <TextField
-            label="Autor"
-            fullWidth
-            {...register('author')}
-            error={!!errors.author}
-            helperText={errors.author?.message}
-          />
-          <TextField
             label="ISBN (opcional)"
             fullWidth
             {...register('isbn')}
           />
           <TextField
-            label="Cantidad de copias"
+            label="Año de publicación (opcional)"
             type="number"
             fullWidth
-            {...register('totalCopies')}
-            error={!!errors.totalCopies}
-            helperText={errors.totalCopies?.message}
+            {...register('publishedYear')}
+            error={!!errors.publishedYear}
+            helperText={errors.publishedYear?.message}
+          />
+          <Controller
+            name="authorIds"
+            control={control}
+            defaultValue={[]}
+            render={({ field }) => (
+              <TextField
+                label="Autores"
+                select
+                fullWidth
+                slotProps={{
+                  select: {
+                    multiple: true,
+                    renderValue: (selected) => {
+                      const ids = selected as string[]
+                      return authors
+                        .filter((a) => ids.includes(a.id))
+                        .map((a) => a.name)
+                        .join(', ')
+                    },
+                  },
+                }}
+                value={field.value ?? []}
+                onChange={field.onChange}
+              >
+                {authors.map((a) => (
+                  <MenuItem key={a.id} value={a.id}>
+                    <Checkbox checked={(field.value ?? []).includes(a.id)} size="small" />
+                    <ListItemText primary={a.name} />
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+          <Controller
+            name="categoryIds"
+            control={control}
+            defaultValue={[]}
+            render={({ field }) => (
+              <TextField
+                label="Categorías"
+                select
+                fullWidth
+                slotProps={{
+                  select: {
+                    multiple: true,
+                    renderValue: (selected) => {
+                      const ids = selected as string[]
+                      return categories
+                        .filter((c) => ids.includes(c.id))
+                        .map((c) => c.name)
+                        .join(', ')
+                    },
+                  },
+                }}
+                value={field.value ?? []}
+                onChange={field.onChange}
+              >
+                {categories.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    <Checkbox checked={(field.value ?? []).includes(c.id)} size="small" />
+                    <ListItemText primary={`${c.name} (${c.prefix})`} />
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
           />
         </DialogContent>
         <DialogActions>

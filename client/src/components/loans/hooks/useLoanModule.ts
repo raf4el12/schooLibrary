@@ -3,19 +3,15 @@ import { useLoans } from '../../../hook/loans/useLoans'
 import { useCreateLoan } from '../../../hook/loans/useCreateLoan'
 import { useReturnLoan } from '../../../hook/loans/useReturnLoan'
 import { useDeleteLoan } from '../../../hook/loans/useDeleteLoan'
-import { useBooks } from '../../../hook/books/useBooks'
-import { useBorrowers } from '../../../hook/borrowers/useBorrowers'
-import type { LoanCreateDto } from '../../../types/loan'
+import type { LoanBorrowDto, LoanReturnDto } from '../../../types/loan'
 
 export function useLoanModule() {
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [formOpen, setFormOpen] = useState(false)
+  const [returnOpen, setReturnOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [returnId, setReturnId] = useState<string | null>(null)
 
   const { data: loans, isPending } = useLoans(statusFilter || undefined)
-  const { data: books } = useBooks()
-  const { data: borrowers } = useBorrowers()
   const createLoan = useCreateLoan()
   const returnLoan = useReturnLoan()
   const deleteLoan = useDeleteLoan()
@@ -23,15 +19,15 @@ export function useLoanModule() {
   const openCreateForm = () => setFormOpen(true)
   const closeForm = () => setFormOpen(false)
 
-  const handleSubmitForm = (data: LoanCreateDto) => {
+  const openReturnForm = () => setReturnOpen(true)
+  const closeReturnForm = () => setReturnOpen(false)
+
+  const handleSubmitBorrow = (data: LoanBorrowDto) => {
     createLoan.mutate(data, { onSuccess: closeForm })
   }
 
-  const handleReturn = () => {
-    if (!returnId) return
-    returnLoan.mutate(returnId, {
-      onSuccess: () => setReturnId(null),
-    })
+  const handleSubmitReturn = (data: LoanReturnDto) => {
+    returnLoan.mutate(data, { onSuccess: closeReturnForm })
   }
 
   const handleDelete = () => {
@@ -43,22 +39,21 @@ export function useLoanModule() {
 
   return {
     loans: loans ?? [],
-    books: books ?? [],
-    borrowers: borrowers ?? [],
     isPending,
     statusFilter,
     setStatusFilter,
     formOpen,
+    returnOpen,
     deleteId,
     setDeleteId,
-    returnId,
-    setReturnId,
     openCreateForm,
     closeForm,
-    handleSubmitForm,
-    handleReturn,
+    openReturnForm,
+    closeReturnForm,
+    handleSubmitBorrow,
+    handleSubmitReturn,
     handleDelete,
-    isFormLoading: createLoan.isPending,
+    isBorrowLoading: createLoan.isPending,
     isReturnLoading: returnLoan.isPending,
     isDeleteLoading: deleteLoan.isPending,
   }
