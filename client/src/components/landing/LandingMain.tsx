@@ -7,9 +7,15 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import SchoolIcon from '@mui/icons-material/School'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
+import PeopleIcon from '@mui/icons-material/People'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 /* ─── keyframes (injected once) ─── */
 const STYLE_ID = '__landing-keyframes'
@@ -47,9 +53,43 @@ function injectKeyframes() {
       from { opacity: 0; transform: translateX(-40px); }
       to   { opacity: 1; transform: translateX(0); }
     }
+    @keyframes carouselFadeIn {
+      from { opacity: 0; transform: scale(1.04); }
+      to   { opacity: 1; transform: scale(1); }
+    }
   `
   document.head.appendChild(style)
 }
+
+/* ─── carousel images ─── */
+const carouselImages = [
+  { src: '/school/I.E 21578.jpeg', alt: 'Vista exterior de la escuela' },
+  { src: '/school/school-3.png', alt: 'Patio y áreas verdes' },
+  { src: '/school/IE-21578_2024-02.jpeg', alt: 'Biblioteca escolar' },
+  { src: '/school/patio_21578.png', alt: 'Vista aérea del campus' },
+]
+
+/* ─── school info ─── */
+const schoolInfo = [
+  {
+    icon: <LocationOnIcon sx={{ fontSize: 26 }} />,
+    title: 'Ubicación',
+    items: ['Región: Lima', 'Provincia: Barranca', 'Distrito: Paramonga'],
+    color: '#42a5f5',
+  },
+  {
+    icon: <AttachMoneyIcon sx={{ fontSize: 26 }} />,
+    title: 'Inversión',
+    items: ['S/ 79 161 848,92 soles'],
+    color: '#66bb6a',
+  },
+  {
+    icon: <PeopleIcon sx={{ fontSize: 26 }} />,
+    title: 'Beneficiarios',
+    items: ['809 estudiantes*', '*Número proyectado a 10 años'],
+    color: '#ffa726',
+  },
+]
 
 /* ─── data ─── */
 const features = [
@@ -90,6 +130,31 @@ const stats = [
 export default function LandingMain() {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const goToSlide = useCallback((idx: number) => {
+    setCurrentSlide((idx + carouselImages.length) % carouselImages.length)
+  }, [])
+
+  const nextSlide = useCallback(() => goToSlide(currentSlide + 1), [currentSlide, goToSlide])
+  const prevSlide = useCallback(() => goToSlide(currentSlide - 1), [currentSlide, goToSlide])
+
+  /* autoplay */
+  useEffect(() => {
+    autoplayRef.current = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % carouselImages.length)
+    }, 5000)
+    return () => { if (autoplayRef.current) clearInterval(autoplayRef.current) }
+  }, [])
+
+  /* pause autoplay on interaction */
+  const resetAutoplay = useCallback(() => {
+    if (autoplayRef.current) clearInterval(autoplayRef.current)
+    autoplayRef.current = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % carouselImages.length)
+    }, 5000)
+  }, [])
 
   useEffect(() => {
     injectKeyframes()
@@ -320,6 +385,184 @@ export default function LandingMain() {
         >
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', textTransform: 'uppercase' }}>Scroll</span>
           <div style={{ width: 1, height: 32, background: 'linear-gradient(to bottom, rgba(255,255,255,.3), transparent)' }} />
+        </div>
+      </section>
+
+      {/* ━━━ Sobre la Escuela ━━━ */}
+      <section
+        id="sobre"
+        style={{
+          maxWidth: 1140, margin: '0 auto',
+          padding: '100px 24px 80px',
+        }}
+      >
+        {/* Section header */}
+        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+          <span style={{
+            display: 'inline-block', fontSize: 12, fontWeight: 600,
+            color: '#42a5f5', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12,
+          }}>
+            Sobre esta Escuela Bicentenario
+          </span>
+          <h2 style={{
+            fontSize: 'clamp(1.5rem, 3.5vw, 2.4rem)', fontWeight: 800,
+            letterSpacing: '-.02em', margin: 0,
+          }}>
+            IE 21578
+          </h2>
+        </div>
+
+        {/* Two-column layout */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))',
+          gap: 40,
+          alignItems: 'start',
+        }}>
+
+          {/* ── Left: School Info Cards ── */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 16,
+          }}>
+            {schoolInfo.map((info, i) => (
+              <div
+                key={info.title}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 16,
+                  background: 'rgba(255,255,255,.03)',
+                  border: '1px solid rgba(255,255,255,.06)',
+                  borderRadius: 16,
+                  padding: '20px 24px',
+                  transition: 'all .35s ease',
+                  cursor: 'default',
+                  animation: `slideInLeft .5s ease ${0.1 * i}s both`,
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget
+                  el.style.borderColor = `${info.color}33`
+                  el.style.boxShadow = `0 8px 32px ${info.color}12`
+                  el.style.background = 'rgba(255,255,255,.05)'
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget
+                  el.style.borderColor = 'rgba(255,255,255,.06)'
+                  el.style.boxShadow = 'none'
+                  el.style.background = 'rgba(255,255,255,.03)'
+                }}
+              >
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                  background: `${info.color}15`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: info.color,
+                }}>
+                  {info.icon}
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: info.color }}>
+                    {info.title}
+                  </div>
+                  {info.items.map((item, j) => (
+                    <div key={j} style={{
+                      color: item.startsWith('*') ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.6)',
+                      lineHeight: 1.5,
+                      fontStyle: item.startsWith('*') ? 'italic' : 'normal',
+                      fontSize: item.startsWith('*') ? 11 : 13,
+                    }}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Right: Image Carousel ── */}
+          <div style={{
+            position: 'relative', borderRadius: 20, overflow: 'hidden',
+            background: 'rgba(255,255,255,.03)',
+            border: '1px solid rgba(255,255,255,.08)',
+            aspectRatio: '16 / 11',
+          }}>
+            {/* Image */}
+            <img
+              key={currentSlide}
+              src={carouselImages[currentSlide].src}
+              alt={carouselImages[currentSlide].alt}
+              style={{
+                width: '100%', height: '100%', objectFit: 'cover',
+                animation: 'carouselFadeIn .5s ease both',
+              }}
+            />
+
+            {/* Gradient overlay bottom */}
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 100,
+              background: 'linear-gradient(to top, rgba(5,13,26,.7), transparent)',
+              pointerEvents: 'none',
+            }} />
+
+            {/* Navigation arrows */}
+            <IconButton
+              onClick={() => { prevSlide(); resetAutoplay() }}
+              sx={{
+                position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(5,13,26,.55)', backdropFilter: 'blur(8px)',
+                color: '#fff', width: 42, height: 42,
+                border: '1px solid rgba(255,255,255,.1)',
+                '&:hover': { background: 'rgba(5,13,26,.8)', borderColor: 'rgba(255,255,255,.2)' },
+                transition: 'all .25s ease',
+              }}
+            >
+              <ChevronLeftIcon />
+            </IconButton>
+            <IconButton
+              onClick={() => { nextSlide(); resetAutoplay() }}
+              sx={{
+                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(5,13,26,.55)', backdropFilter: 'blur(8px)',
+                color: '#fff', width: 42, height: 42,
+                border: '1px solid rgba(255,255,255,.1)',
+                '&:hover': { background: 'rgba(5,13,26,.8)', borderColor: 'rgba(255,255,255,.2)' },
+                transition: 'all .25s ease',
+              }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
+
+            {/* Dot indicators */}
+            <div style={{
+              position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', gap: 8, zIndex: 2,
+            }}>
+              {carouselImages.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  onClick={() => { goToSlide(dotIdx); resetAutoplay() }}
+                  style={{
+                    width: dotIdx === currentSlide ? 24 : 10,
+                    height: 10, borderRadius: 999,
+                    background: dotIdx === currentSlide
+                      ? 'linear-gradient(135deg, #42a5f5, #1565c0)'
+                      : 'rgba(255,255,255,.35)',
+                    border: 'none', cursor: 'pointer', padding: 0,
+                    transition: 'all .3s ease',
+                    boxShadow: dotIdx === currentSlide ? '0 0 10px rgba(66,165,245,.5)' : 'none',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Image label */}
+            <div style={{
+              position: 'absolute', bottom: 36, left: 16,
+              fontSize: 12, color: 'rgba(255,255,255,.7)', fontWeight: 500,
+              background: 'rgba(5,13,26,.5)', backdropFilter: 'blur(4px)',
+              borderRadius: 8, padding: '4px 12px',
+            }}>
+              {carouselImages[currentSlide].alt}
+            </div>
+          </div>
         </div>
       </section>
 

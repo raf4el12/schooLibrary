@@ -25,17 +25,21 @@ async function getById(req, res) {
   }
 }
 
-async function create(req, res) {
+async function borrow(req, res) {
   try {
-    const { borrowerId, bookId, dueDate } = req.body;
+    const { borrowerIdentifier, inventoryCode } = req.body;
 
-    if (!borrowerId || !bookId || !dueDate) {
+    if (!borrowerIdentifier || !inventoryCode) {
       return res.status(400).json({
-        message: "borrowerId, bookId y dueDate son requeridos",
+        message: "borrowerIdentifier e inventoryCode son requeridos",
       });
     }
 
-    const result = await loansUsecase.createLoan({ borrowerId, bookId, dueDate });
+    const result = await loansUsecase.borrowBook({
+      borrowerIdentifier,
+      inventoryCode,
+      userId: req.user.id,
+    });
 
     if (result.error) {
       return res.status(400).json({ message: result.error });
@@ -43,14 +47,20 @@ async function create(req, res) {
 
     res.status(201).json(result);
   } catch (error) {
-    console.error("Error creating loan:", error.message);
+    console.error("Error borrowing book:", error.message);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 }
 
 async function returnLoan(req, res) {
   try {
-    const result = await loansUsecase.returnLoan(req.params.id);
+    const { inventoryCode, condition } = req.body;
+
+    if (!inventoryCode) {
+      return res.status(400).json({ message: "inventoryCode es requerido" });
+    }
+
+    const result = await loansUsecase.returnBook({ inventoryCode, condition });
 
     if (result.error) {
       return res.status(400).json({ message: result.error });
@@ -78,4 +88,4 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { getAll, getById, create, returnLoan, remove };
+module.exports = { getAll, getById, borrow, returnLoan, remove };

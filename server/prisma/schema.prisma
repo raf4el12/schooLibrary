@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ================= ENUMS =================
+
 enum Role {
   ADMIN
   LIBRARIAN
@@ -16,7 +18,22 @@ enum LoanStatus {
   ACTIVE
   RETURNED
   OVERDUE
+  LOST
 }
+
+enum BorrowerType {
+  STUDENT
+  TEACHER
+}
+
+enum CopyCondition {
+  NEW
+  GOOD
+  FAIR
+  DAMAGED
+}
+
+// ================= MODELOS =================
 
 model User {
   id        String   @id @default(uuid())
@@ -24,52 +41,122 @@ model User {
   password  String
   name      String
   role      Role     @default(LIBRARIAN)
+  loans     Loan[]   // Préstamos procesados por este usuario
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
 }
 
+model Author {
+  id        String   @id @default(uuid())
+  name      String
+  books     Book[]   @relation("BookAuthors")
+  createdAt DateTime @default(now())
+
+  @@map("authors")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  prefix    String   @unique @db.VarChar(3) // Prefijo para inventoryCode (ej. "LIT", "CIE", "MAT")
+  books     Book[]   @relation("BookCategories")
+  createdAt DateTime @default(now())
+
+  @@map("categories")
+}
+
+// Catálogo General (Ficha Bibliográfica)
 model Book {
-  id              String   @id @default(uuid())
-  title           String
-  author          String
-  isbn            String?  @unique
-  totalCopies     Int      @default(1)
-  availableCopies Int      @default(1)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  loans           Loan[]
+  id            String     @id @default(uuid())
+  title         String
+  isbn          String?    @unique
+  publishedYear Int?
+  
+  authors       Author[]   @relation("BookAuthors")
+  categories    Category[] @relation("BookCategories")
+  copies        BookCopy[] 
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@map("books")
 }
 
+// Ejemplar Físico (El libro en la estantería)
+model BookCopy {
+  id            String        @id @default(uuid())
+  bookId        String
+  inventoryCode String        @unique // Código manual amigable (ej. LIT-001)
+  condition     CopyCondition @default(GOOD)
+  isAvailable   Boolean       @default(true)
+  
+  book          Book          @relation(fields: [bookId], references: [id])
+  loans         Loan[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("book_copies")
+}
+
 model Borrower {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
+  code      String       @unique // Código de identificación rápida (ej. "EST-001", "DOC-005")
   name      String
-  email     String?  @unique
-  grade     String?
-  type      String   @default("STUDENT") // STUDENT | TEACHER
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  email     String?      @unique
+  grade     String?      // Salón o grado (ej. "4to Secundaria")
+  type      BorrowerType @default(STUDENT)
+  isActive  Boolean      @default(true) // Control de acceso por sanciones
+
   loans     Loan[]
+  penalties Penalty[]
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   @@map("borrowers")
 }
 
 model Loan {
-  id         String     @id @default(uuid())
-  borrowerId String
-  bookId     String
-  status     LoanStatus @default(ACTIVE)
-  borrowedAt DateTime   @default(now())
-  dueDate    DateTime
-  returnedAt DateTime?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id           String     @id @default(uuid())
+  borrowerId   String
+  bookCopyId   String
+  loanedBy     String     // userId del bibliotecario que procesó el préstamo
+  status       LoanStatus @default(ACTIVE)
 
-  borrower Borrower @relation(fields: [borrowerId], references: [id])
-  book     Book     @relation(fields: [bookId], references: [id])
+  borrowedAt   DateTime   @default(now())
+  dueDate      DateTime   // Fecha límite acordada
+  returnedAt   DateTime?  // Fecha real de devolución
 
+  borrower     Borrower   @relation(fields: [borrowerId], references: [id])
+  bookCopy     BookCopy   @relation(fields: [bookCopyId], references: [id])
+  processedBy  User       @relation(fields: [loanedBy], references: [id])
+  penalty      Penalty?
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([status, dueDate])       // Optimiza el cron de overdue
+  @@index([bookCopyId, status])    // Optimiza búsqueda de loan activo por copia
   @@map("loans")
+}
+
+model Penalty {
+  id          String   @id @default(uuid())
+  borrowerId  String
+  loanId      String   @unique
+  reason      String   
+  resolved    Boolean  @default(false)
+  
+  borrower    Borrower  @relation(fields: [borrowerId], references: [id])
+  loan        Loan      @relation(fields: [loanId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime? // Cuándo se resolvió la sanción
+  updatedAt   DateTime  @updatedAt
+
+  @@map("penalties")
 }

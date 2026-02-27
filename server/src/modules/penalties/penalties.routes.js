@@ -2,17 +2,13 @@ const { Router } = require("express");
 const {
   getAll,
   getById,
-  borrow,
-  returnLoan,
-  remove,
-} = require("./loans.controller");
+  resolve,
+} = require("./penalties.controller");
 
 const router = Router();
 
 router.get("/", getAll);
 router.get("/:id", getById);
-router.post("/borrow", borrow);
-router.patch("/return", returnLoan);
-router.delete("/:id", remove);
+router.patch("/:id/resolve", resolve);
 
 module.exports = router;

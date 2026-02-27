@@ -27,13 +27,13 @@ async function getById(req, res) {
 
 async function create(req, res) {
   try {
-    const { title, author, isbn, totalCopies } = req.body;
+    const { title, isbn, publishedYear, authorIds, categoryIds } = req.body;
 
-    if (!title || !author) {
-      return res.status(400).json({ message: "Título y autor son requeridos" });
+    if (!title) {
+      return res.status(400).json({ message: "El título es requerido" });
     }
 
-    const book = await booksUsecase.createBook({ title, author, isbn, totalCopies });
+    const book = await booksUsecase.createBook({ title, isbn, publishedYear, authorIds, categoryIds });
     res.status(201).json(book);
   } catch (error) {
     if (error.code === "P2002") {
@@ -64,10 +64,14 @@ async function update(req, res) {
 
 async function remove(req, res) {
   try {
-    const deleted = await booksUsecase.deleteBook(req.params.id);
+    const result = await booksUsecase.deleteBook(req.params.id);
 
-    if (!deleted) {
+    if (!result) {
       return res.status(404).json({ message: "Libro no encontrado" });
+    }
+
+    if (result.error) {
+      return res.status(409).json({ message: result.error });
     }
 
     res.json({ message: "Libro eliminado correctamente" });
