@@ -16,50 +16,38 @@ import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
-/* ─── keyframes (injected once) ─── */
-const STYLE_ID = '__landing-keyframes'
-function injectKeyframes() {
-  if (document.getElementById(STYLE_ID)) return
-  const style = document.createElement('style')
-  style.id = STYLE_ID
-  style.textContent = `
-    @keyframes gradientShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50%      { transform: translateY(-24px) rotate(6deg); }
-    }
-    @keyframes float2 {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50%      { transform: translateY(-18px) rotate(-4deg); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(32px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes shimmer {
-      0%   { background-position: -200% center; }
-      100% { background-position: 200% center; }
-    }
-    @keyframes pulse-ring {
-      0%   { transform: scale(1); opacity: .35; }
-      100% { transform: scale(1.6); opacity: 0; }
-    }
-    @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-40px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes carouselFadeIn {
-      from { opacity: 0; transform: scale(1.04); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-  `
-  document.head.appendChild(style)
+/* ─── framer-motion variants ─── */
+const fadeInUp = {
+  hidden: { opacity: 0, y: 32 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, delay, ease: 'easeOut' },
+  }),
 }
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -40 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.5, delay, ease: 'easeOut' },
+  }),
+}
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15 } },
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+}
+
+const viewportOnce = { once: true, amount: 0.3 } as const
 
 /* ─── carousel images ─── */
 const carouselImages = [
@@ -157,7 +145,6 @@ export default function LandingMain() {
   }, [])
 
   useEffect(() => {
-    injectKeyframes()
     const handler = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', handler)
     return () => window.removeEventListener('scroll', handler)
@@ -165,6 +152,27 @@ export default function LandingMain() {
 
   return (
     <div style={{ background: '#050d1a', minHeight: '100vh', color: '#fff', overflowX: 'hidden' }}>
+
+      {/* Decorative CSS keyframes (infinite loops only) */}
+      <style>{`
+        @keyframes gradientShift {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50%      { transform: translateY(-24px) rotate(6deg); }
+        }
+        @keyframes float2 {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50%      { transform: translateY(-18px) rotate(-4deg); }
+        }
+        @keyframes shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+      `}</style>
 
       {/* ━━━ Navbar ━━━ */}
       <nav
@@ -246,29 +254,35 @@ export default function LandingMain() {
         }} />
 
         {/* Badge */}
-        <div
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          custom={0}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: 'rgba(21,101,192,.15)', border: '1px solid rgba(21,101,192,.25)',
             borderRadius: 999, padding: '6px 18px', marginBottom: 32,
-            animation: 'fadeInUp .7s ease both',
           }}
         >
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#42a5f5', display: 'inline-block' }} />
           <span style={{ fontSize: 13, fontWeight: 500, color: '#90caf9', letterSpacing: '.02em' }}>
             Sistema de Biblioteca Escolar
           </span>
-        </div>
+        </motion.div>
 
         {/* School name – hero */}
-        <h1
+        <motion.h1
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.15}
           style={{
             fontSize: 'clamp(2rem, 5.5vw, 4.2rem)',
             fontWeight: 800,
             lineHeight: 1.1,
             letterSpacing: '-.03em',
             margin: '0 0 8px',
-            animation: 'fadeInUp .7s ease .15s both',
           }}
         >
           <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 'clamp(.9rem, 2vw, 1.15rem)', fontWeight: 600, display: 'block', marginBottom: 12, letterSpacing: '.08em', textTransform: 'uppercase' }}>
@@ -300,37 +314,46 @@ export default function LandingMain() {
           >
             21578
           </span>
-        </h1>
+        </motion.h1>
 
         {/* Divider */}
-        <div
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.3}
           style={{
             width: 64, height: 3, borderRadius: 2,
             background: 'linear-gradient(90deg, transparent, #1565c0, #42a5f5, transparent)',
             margin: '24px auto',
-            animation: 'fadeInUp .7s ease .3s both',
           }}
         />
 
         {/* Subtitle */}
-        <p
+        <motion.p
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.4}
           style={{
             fontSize: 'clamp(1rem, 2vw, 1.2rem)',
             color: 'rgba(255,255,255,.55)',
             maxWidth: 540, lineHeight: 1.7,
             margin: '0 auto 36px',
-            animation: 'fadeInUp .7s ease .4s both',
           }}
         >
           <strong style={{ color: '#90caf9' }}>BiblioTK</strong> simplifica la gestión de la biblioteca.
           Controla libros, préstamos y prestatarios desde un solo lugar.
-        </p>
+        </motion.p>
 
         {/* CTA buttons */}
-        <div
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.55}
           style={{
             display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center',
-            animation: 'fadeInUp .7s ease .55s both',
           }}
         >
           <Button
@@ -373,19 +396,22 @@ export default function LandingMain() {
           >
             Conocer más
           </Button>
-        </div>
+        </motion.div>
 
         {/* Scroll indicator */}
-        <div
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.7}
           style={{
             position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-            animation: 'fadeInUp .7s ease .7s both',
           }}
         >
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', textTransform: 'uppercase' }}>Scroll</span>
           <div style={{ width: 1, height: 32, background: 'linear-gradient(to bottom, rgba(255,255,255,.3), transparent)' }} />
-        </div>
+        </motion.div>
       </section>
 
       {/* ━━━ Sobre la Escuela ━━━ */}
@@ -397,7 +423,14 @@ export default function LandingMain() {
         }}
       >
         {/* Section header */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          custom={0}
+          style={{ textAlign: 'center', marginBottom: 56 }}
+        >
           <span style={{
             display: 'inline-block', fontSize: 12, fontWeight: 600,
             color: '#42a5f5', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12,
@@ -410,7 +443,7 @@ export default function LandingMain() {
           }}>
             IE 21578
           </h2>
-        </div>
+        </motion.div>
 
         {/* Two-column layout */}
         <div style={{
@@ -425,29 +458,25 @@ export default function LandingMain() {
             display: 'flex', flexDirection: 'column', gap: 16,
           }}>
             {schoolInfo.map((info, i) => (
-              <div
+              <motion.div
                 key={info.title}
+                variants={slideInLeft}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+                custom={0.1 * i}
+                whileHover={{
+                  borderColor: `${info.color}33`,
+                  boxShadow: `0 8px 32px ${info.color}12`,
+                  background: 'rgba(255,255,255,.05)',
+                }}
                 style={{
                   display: 'flex', alignItems: 'flex-start', gap: 16,
                   background: 'rgba(255,255,255,.03)',
                   border: '1px solid rgba(255,255,255,.06)',
                   borderRadius: 16,
                   padding: '20px 24px',
-                  transition: 'all .35s ease',
                   cursor: 'default',
-                  animation: `slideInLeft .5s ease ${0.1 * i}s both`,
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget
-                  el.style.borderColor = `${info.color}33`
-                  el.style.boxShadow = `0 8px 32px ${info.color}12`
-                  el.style.background = 'rgba(255,255,255,.05)'
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget
-                  el.style.borderColor = 'rgba(255,255,255,.06)'
-                  el.style.boxShadow = 'none'
-                  el.style.background = 'rgba(255,255,255,.03)'
                 }}
               >
                 <div style={{
@@ -473,7 +502,7 @@ export default function LandingMain() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -484,22 +513,28 @@ export default function LandingMain() {
             border: '1px solid rgba(255,255,255,.08)',
             aspectRatio: '16 / 11',
           }}>
-            {/* Image */}
-            <img
-              key={currentSlide}
-              src={carouselImages[currentSlide].src}
-              alt={carouselImages[currentSlide].alt}
-              style={{
-                width: '100%', height: '100%', objectFit: 'cover',
-                animation: 'carouselFadeIn .5s ease both',
-              }}
-            />
+            {/* Image with AnimatePresence */}
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={currentSlide}
+                src={carouselImages[currentSlide].src}
+                alt={carouselImages[currentSlide].alt}
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  position: 'absolute', inset: 0,
+                }}
+              />
+            </AnimatePresence>
 
             {/* Gradient overlay bottom */}
             <div style={{
               position: 'absolute', bottom: 0, left: 0, right: 0, height: 100,
               background: 'linear-gradient(to top, rgba(5,13,26,.7), transparent)',
-              pointerEvents: 'none',
+              pointerEvents: 'none', zIndex: 1,
             }} />
 
             {/* Navigation arrows */}
@@ -508,7 +543,7 @@ export default function LandingMain() {
               sx={{
                 position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
                 background: 'rgba(5,13,26,.55)', backdropFilter: 'blur(8px)',
-                color: '#fff', width: 42, height: 42,
+                color: '#fff', width: 42, height: 42, zIndex: 2,
                 border: '1px solid rgba(255,255,255,.1)',
                 '&:hover': { background: 'rgba(5,13,26,.8)', borderColor: 'rgba(255,255,255,.2)' },
                 transition: 'all .25s ease',
@@ -521,7 +556,7 @@ export default function LandingMain() {
               sx={{
                 position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                 background: 'rgba(5,13,26,.55)', backdropFilter: 'blur(8px)',
-                color: '#fff', width: 42, height: 42,
+                color: '#fff', width: 42, height: 42, zIndex: 2,
                 border: '1px solid rgba(255,255,255,.1)',
                 '&:hover': { background: 'rgba(5,13,26,.8)', borderColor: 'rgba(255,255,255,.2)' },
                 transition: 'all .25s ease',
@@ -555,7 +590,7 @@ export default function LandingMain() {
 
             {/* Image label */}
             <div style={{
-              position: 'absolute', bottom: 36, left: 16,
+              position: 'absolute', bottom: 36, left: 16, zIndex: 2,
               fontSize: 12, color: 'rgba(255,255,255,.7)', fontWeight: 500,
               background: 'rgba(5,13,26,.5)', backdropFilter: 'blur(4px)',
               borderRadius: 8, padding: '4px 12px',
@@ -574,7 +609,14 @@ export default function LandingMain() {
           padding: '100px 24px 80px',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          custom={0}
+          style={{ textAlign: 'center', marginBottom: 56 }}
+        >
           <span style={{
             display: 'inline-block', fontSize: 12, fontWeight: 600,
             color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12,
@@ -584,36 +626,33 @@ export default function LandingMain() {
           <h2 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)', fontWeight: 800, letterSpacing: '-.02em', margin: 0 }}>
             Todo lo que necesitas para tu biblioteca
           </h2>
-        </div>
+        </motion.div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
-          {features.map((f, i) => (
-            <div
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}
+        >
+          {features.map((f) => (
+            <motion.div
               key={f.title}
+              variants={staggerItem}
+              whileHover={{
+                y: -6,
+                borderColor: `${f.color}33`,
+                boxShadow: `0 12px 40px ${f.color}15`,
+                background: 'rgba(255,255,255,.05)',
+              }}
               style={{
                 background: 'rgba(255,255,255,.03)',
                 border: '1px solid rgba(255,255,255,.06)',
                 borderRadius: 18,
                 padding: 28,
                 cursor: 'default',
-                transition: 'all .35s ease',
-                animation: `fadeInUp .6s ease ${.15 * i}s both`,
                 position: 'relative',
                 overflow: 'hidden',
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget
-                el.style.transform = 'translateY(-6px)'
-                el.style.borderColor = `${f.color}33`
-                el.style.boxShadow = `0 12px 40px ${f.color}15`
-                el.style.background = 'rgba(255,255,255,.05)'
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget
-                el.style.transform = 'translateY(0)'
-                el.style.borderColor = 'rgba(255,255,255,.06)'
-                el.style.boxShadow = 'none'
-                el.style.background = 'rgba(255,255,255,.03)'
               }}
             >
               <div style={{
@@ -626,14 +665,18 @@ export default function LandingMain() {
               </div>
               <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, margin: '0 0 8px' }}>{f.title}</h3>
               <p style={{ fontSize: 14, color: 'rgba(255,255,255,.5)', lineHeight: 1.65, margin: 0 }}>{f.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       {/* ━━━ Stats ━━━ */}
       <section style={{ padding: '60px 24px 80px' }}>
-        <div
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
           style={{
             maxWidth: 1140, margin: '0 auto',
             background: 'linear-gradient(135deg, rgba(21,101,192,.12), rgba(66,165,245,.06))',
@@ -642,25 +685,28 @@ export default function LandingMain() {
             display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 24,
           }}
         >
-          {stats.map((s, i) => (
-            <div
+          {stats.map((s) => (
+            <motion.div
               key={s.label}
-              style={{
-                textAlign: 'center',
-                animation: `fadeInUp .6s ease ${.1 * i}s both`,
-              }}
+              variants={staggerItem}
+              style={{ textAlign: 'center' }}
             >
               <div style={{ display: 'inline-flex', color: s.color, marginBottom: 8 }}>{s.icon}</div>
               <div style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-.02em' }}>{s.value}</div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', marginTop: 4 }}>{s.label}</div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       {/* ━━━ CTA ━━━ */}
       <section style={{ padding: '40px 24px 100px' }}>
-        <div
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          custom={0}
           style={{
             maxWidth: 720, margin: '0 auto', textAlign: 'center',
             background: 'linear-gradient(135deg, #0d2240, #122a52)',
@@ -703,11 +749,15 @@ export default function LandingMain() {
           >
             Comenzar ahora
           </Button>
-        </div>
+        </motion.div>
       </section>
 
       {/* ━━━ Footer ━━━ */}
-      <footer
+      <motion.footer
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
         style={{
           borderTop: '1px solid rgba(255,255,255,.06)',
           padding: '24px 0',
@@ -725,7 +775,7 @@ export default function LandingMain() {
           </div>
           <span>Escuela Bicentenario 21578 — © {new Date().getFullYear()}</span>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   )
 }
