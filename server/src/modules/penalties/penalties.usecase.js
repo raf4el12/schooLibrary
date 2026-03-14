@@ -59,6 +59,14 @@ async function resolvePenalty(id) {
     },
   });
 
+  // Contar préstamos vencidos no devueltos del mismo borrower
+  const overdueLoans = await prisma.loan.count({
+    where: {
+      borrowerId: penalty.borrowerId,
+      status: "OVERDUE",
+    },
+  });
+
   const operations = [
     prisma.penalty.update({
       where: { id },
@@ -79,8 +87,8 @@ async function resolvePenalty(id) {
     }),
   ];
 
-  // Solo reactivar borrower si no tiene otras penalties pendientes
-  if (otherPending === 0) {
+  // Solo reactivar borrower si no tiene otras penalties pendientes NI préstamos vencidos
+  if (otherPending === 0 && overdueLoans === 0) {
     operations.push(
       prisma.borrower.update({
         where: { id: penalty.borrowerId },

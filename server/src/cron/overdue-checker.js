@@ -7,19 +7,39 @@ function startOverdueChecker() {
     try {
       const now = new Date();
 
-      const result = await prisma.loan.updateMany({
+      // Buscar préstamos activos vencidos
+      const overdueLoans = await prisma.loan.findMany({
         where: {
           status: "ACTIVE",
           dueDate: { lt: now },
         },
-        data: {
-          status: "OVERDUE",
+        select: {
+          id: true,
+          borrowerId: true,
         },
       });
 
-      if (result.count > 0) {
-        console.log(`[Overdue Checker] ${result.count} préstamo(s) marcado(s) como vencido(s)`);
-      }
+      if (overdueLoans.length === 0) return;
+
+      // IDs únicos de prestatarios con préstamos vencidos
+      const borrowerIds = [...new Set(overdueLoans.map((l) => l.borrowerId))];
+      const loanIds = overdueLoans.map((l) => l.id);
+
+      // Transacción: marcar préstamos como OVERDUE + suspender prestatarios
+      await prisma.$transaction([
+        prisma.loan.updateMany({
+          where: { id: { in: loanIds } },
+          data: { status: "OVERDUE" },
+        }),
+        prisma.borrower.updateMany({
+          where: { id: { in: borrowerIds } },
+          data: { isActive: false },
+        }),
+      ]);
+
+      console.log(
+        `[Overdue Checker] ${overdueLoans.length} préstamo(s) marcado(s) como vencido(s), ${borrowerIds.length} prestatario(s) suspendido(s)`
+      );
     } catch (error) {
       console.error("[Overdue Checker] Error:", error.message);
     }

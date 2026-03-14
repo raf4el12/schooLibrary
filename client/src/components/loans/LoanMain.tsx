@@ -1,6 +1,7 @@
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import Chip from '@mui/material/Chip'
@@ -8,11 +9,13 @@ import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
+import Tooltip from '@mui/material/Tooltip'
 import LoanForm from './LoanForm'
 import LoanReturnForm from './LoanReturnForm'
 import ConfirmDialog from '../commons/ConfirmDialog'
 import { useLoanModule } from './hooks/useLoanModule'
 import type { LoanStatus } from '../../types/loan'
+import { useMemo } from 'react'
 
 const statusColors: Record<LoanStatus, 'warning' | 'success' | 'error'> = {
   ACTIVE: 'warning',
@@ -24,6 +27,47 @@ const statusLabels: Record<LoanStatus, string> = {
   ACTIVE: 'Activo',
   RETURNED: 'Devuelto',
   OVERDUE: 'Vencido',
+}
+
+function DaysIndicator({ loan }: { loan: { status: LoanStatus; dueDate: string } }) {
+  const now = useMemo(() => Date.now(), [])
+
+  if (loan.status === 'RETURNED') return null
+
+  const dueTime = new Date(loan.dueDate).getTime()
+  const diffMs = dueTime - now
+  const diffDays = Math.ceil(diffMs / 86_400_000)
+
+  if (loan.status === 'OVERDUE') {
+    const overdueDays = Math.abs(diffDays)
+    return (
+      <Tooltip title={`${overdueDays} día(s) de retraso — Prestatario suspendido`}>
+        <span
+          className="inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded"
+          style={{ background: '#fef2f2', color: '#e11d48' }}
+        >
+          <WarningAmberIcon sx={{ fontSize: 13 }} />
+          +{overdueDays}d
+        </span>
+      </Tooltip>
+    )
+  }
+
+  // ACTIVE
+  if (diffDays <= 2 && diffDays >= 0) {
+    return (
+      <Tooltip title={`Vence en ${diffDays} día(s)`}>
+        <span
+          className="text-[11px] font-bold px-1.5 py-0.5 rounded"
+          style={{ background: '#fffbeb', color: '#d97706' }}
+        >
+          {diffDays}d restante{diffDays !== 1 ? 's' : ''}
+        </span>
+      </Tooltip>
+    )
+  }
+
+  return null
 }
 
 export default function LoanMain() {
@@ -48,10 +92,26 @@ export default function LoanMain() {
     isDeleteLoading,
   } = useLoanModule()
 
+  const overdueCount = useMemo(
+    () => loans.filter((l) => l.status === 'OVERDUE').length,
+    [loans],
+  )
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Préstamos</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="page-title">Préstamos</h1>
+          {overdueCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-[12px] font-bold px-2.5 py-1 rounded-lg"
+              style={{ background: '#fef2f2', color: '#e11d48' }}
+            >
+              <WarningAmberIcon sx={{ fontSize: 15 }} />
+              {overdueCount} vencido{overdueCount !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button
             variant="outlined"
@@ -108,7 +168,15 @@ export default function LoanMain() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loans.map((loan) => (
-                  <tr key={loan.id} className="hover:bg-gray-50">
+                  <tr
+                    key={loan.id}
+                    className="hover:bg-gray-50"
+                    style={
+                      loan.status === 'OVERDUE'
+                        ? { background: 'rgba(254,242,242,0.5)' }
+                        : undefined
+                    }
+                  >
                     <td className="px-4 py-3 font-mono">
                       {loan.bookCopy?.inventoryCode ?? '—'}
                     </td>
@@ -121,18 +189,23 @@ export default function LoanMain() {
                         (DNI: {loan.borrower?.dni})
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 tabular-nums">
                       {new Date(loan.borrowedAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
-                      {new Date(loan.dueDate).toLocaleDateString()}
+                      <div className="flex items-center gap-2">
+                        <span className="tabular-nums">
+                          {new Date(loan.dueDate).toLocaleDateString()}
+                        </span>
+                        <DaysIndicator loan={loan} />
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <Chip
                         label={statusLabels[loan.status]}
                         size="small"
                         color={statusColors[loan.status]}
-                        variant="outlined"
+                        variant={loan.status === 'OVERDUE' ? 'filled' : 'outlined'}
                       />
                     </td>
                     <td className="px-4 py-3 text-center">

@@ -17,24 +17,24 @@ const menuSections = [
   {
     title: 'General',
     items: [
-      { label: 'Dashboard', href: '/admin', icon: <DashboardIcon sx={{ fontSize: 20 }} /> },
+      { label: 'Dashboard', href: '/admin', icon: <DashboardIcon sx={{ fontSize: 19 }} /> },
     ],
   },
   {
     title: 'Catálogo',
     items: [
-      { label: 'Autores', href: '/admin/authors', icon: <PersonIcon sx={{ fontSize: 20 }} /> },
-      { label: 'Categorías', href: '/admin/categories', icon: <CategoryIcon sx={{ fontSize: 20 }} /> },
-      { label: 'Libros', href: '/admin/books', icon: <LibraryBooksIcon sx={{ fontSize: 20 }} /> },
-      { label: 'Ejemplares', href: '/admin/book-copies', icon: <ContentCopyIcon sx={{ fontSize: 20 }} /> },
+      { label: 'Autores', href: '/admin/authors', icon: <PersonIcon sx={{ fontSize: 19 }} /> },
+      { label: 'Categorías', href: '/admin/categories', icon: <CategoryIcon sx={{ fontSize: 19 }} /> },
+      { label: 'Libros', href: '/admin/books', icon: <LibraryBooksIcon sx={{ fontSize: 19 }} /> },
+      { label: 'Ejemplares', href: '/admin/book-copies', icon: <ContentCopyIcon sx={{ fontSize: 19 }} /> },
     ],
   },
   {
     title: 'Circulación',
     items: [
-      { label: 'Prestatarios', href: '/admin/borrowers', icon: <GroupIcon sx={{ fontSize: 20 }} /> },
-      { label: 'Préstamos', href: '/admin/loans', icon: <SwapHorizIcon sx={{ fontSize: 20 }} /> },
-      { label: 'Penalidades', href: '/admin/penalties', icon: <GavelIcon sx={{ fontSize: 20 }} /> },
+      { label: 'Prestatarios', href: '/admin/borrowers', icon: <GroupIcon sx={{ fontSize: 19 }} /> },
+      { label: 'Préstamos', href: '/admin/loans', icon: <SwapHorizIcon sx={{ fontSize: 19 }} /> },
+      { label: 'Penalidades', href: '/admin/penalties', icon: <GavelIcon sx={{ fontSize: 19 }} /> },
     ],
   },
 ]
@@ -65,44 +65,53 @@ export default function SidebarBase() {
 
   return (
     <aside
-      className="fixed top-0 left-0 h-screen w-64 flex flex-col z-10"
+      className="fixed top-0 left-0 h-screen flex flex-col z-10"
       style={{
-        background: 'linear-gradient(180deg, #0a1628 0%, #0d1f3a 50%, #0a1628 100%)',
+        width: 'var(--sidebar-w)',
+        background: 'linear-gradient(180deg, #16192b 0%, #1a1d32 50%, #16192b 100%)',
         borderRight: '1px solid rgba(255,255,255,0.06)',
       }}
     >
-      {/* ── Brand ── */}
+      {/* Brand */}
       <div
         className="flex items-center gap-3 px-5 py-5"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
       >
         <div
           className="flex items-center justify-center shrink-0"
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'linear-gradient(135deg, #1565c0, #42a5f5)',
-            boxShadow: '0 0 20px rgba(21,101,192,0.3)',
+            width: 38,
+            height: 38,
+            borderRadius: 11,
+            background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
+            boxShadow: '0 4px 16px rgba(13,148,136,0.3)',
           }}
         >
           <MenuBookIcon sx={{ fontSize: 20, color: '#fff' }} />
         </div>
         <div className="flex flex-col leading-tight">
-          <span className="text-[15px] font-bold text-white tracking-tight">BiblioTK</span>
-          <span className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <span
+            className="text-[15px] font-bold tracking-tight"
+            style={{ color: 'rgba(255,255,255,0.95)' }}
+          >
+            BiblioTK
+          </span>
+          <span
+            className="text-[10px] font-medium"
+            style={{ color: 'rgba(255,255,255,0.3)' }}
+          >
             Escuela 21578
           </span>
         </div>
       </div>
 
-      {/* ── Navigation ── */}
-      <nav className="flex-1 px-3 pt-4 pb-2 overflow-y-auto space-y-5">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 pt-5 pb-2 overflow-y-auto space-y-6">
         {menuSections.map((section) => (
           <div key={section.title}>
             <span
-              className="block px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              className="block px-3 pb-2.5 text-[10px] font-bold uppercase tracking-[0.12em]"
+              style={{ color: 'rgba(255,255,255,0.22)' }}
             >
               {section.title}
             </span>
@@ -117,30 +126,12 @@ export default function SidebarBase() {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] transition-all duration-200"
-                    style={
-                      isActive
-                        ? {
-                            background: 'rgba(21,101,192,0.2)',
-                            color: '#90caf9',
-                            fontWeight: 600,
-                            boxShadow: 'inset 0 0 0 1px rgba(21,101,192,0.25)',
-                          }
-                        : {
-                            color: 'rgba(255,255,255,0.5)',
-                          }
-                    }
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                        e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = 'transparent'
-                        e.currentTarget.style.color = 'rgba(255,255,255,0.5)'
-                      }
+                    className={`sidebar-link flex items-center gap-3 w-full px-3 py-2.5 text-[13px] ${isActive ? 'active' : ''}`}
+                    style={{
+                      color: isActive
+                        ? '#5eead4'
+                        : 'rgba(255,255,255,0.45)',
+                      fontWeight: isActive ? 600 : 400,
                     }}
                   >
                     {item.icon}
@@ -153,62 +144,61 @@ export default function SidebarBase() {
         ))}
       </nav>
 
-      {/* ── User section ── */}
-      <div className="px-3 pb-4 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      {/* User section */}
+      <div
+        className="px-3 pb-4 pt-2"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+      >
         <div
-          className="flex items-center gap-3 px-3 py-3 rounded-xl mb-2"
+          className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1.5"
           style={{ background: 'rgba(255,255,255,0.04)' }}
         >
-          {/* Avatar */}
           <div
             className="flex items-center justify-center shrink-0"
             style={{
               width: 36,
               height: 36,
               borderRadius: 10,
-              background: 'linear-gradient(135deg, #1565c0, #1e88e5)',
-              boxShadow: '0 0 12px rgba(21,101,192,0.25)',
+              background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
               color: '#fff',
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: '0.03em',
+              letterSpacing: '0.04em',
             }}
           >
             {initials}
           </div>
-          {/* Info */}
           <div className="flex flex-col min-w-0">
             <span
               className="text-[13px] font-semibold truncate"
-              style={{ color: 'rgba(255,255,255,0.9)' }}
+              style={{ color: 'rgba(255,255,255,0.88)' }}
             >
               {user?.name}
             </span>
             <span
               className="text-[11px] font-medium"
-              style={{ color: 'rgba(144,202,249,0.7)' }}
+              style={{ color: 'rgba(94,234,212,0.6)' }}
             >
               {roleLabels[user?.role ?? ''] ?? user?.role}
             </span>
           </div>
         </div>
 
-        {/* Logout */}
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] transition-all duration-200 cursor-pointer"
+          className="sidebar-link flex items-center gap-3 w-full px-3 py-2 text-[13px] cursor-pointer"
           style={{
-            color: 'rgba(255,255,255,0.4)',
+            color: 'rgba(255,255,255,0.35)',
             background: 'transparent',
             border: 'none',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(239,68,68,0.1)'
-            e.currentTarget.style.color = '#f87171'
+            e.currentTarget.style.background = 'rgba(225,29,72,0.1)'
+            e.currentTarget.style.color = '#fb7185'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
+            e.currentTarget.style.color = 'rgba(255,255,255,0.35)'
           }}
         >
           <LogoutIcon sx={{ fontSize: 18 }} />

@@ -35,7 +35,7 @@ export default function CategoryMain() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Categorías</h1>
+        <h1 className="page-title">Categorías</h1>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

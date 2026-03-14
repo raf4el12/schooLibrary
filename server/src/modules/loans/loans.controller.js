@@ -27,7 +27,7 @@ async function getById(req, res) {
 
 async function borrow(req, res) {
   try {
-    const { borrowerIdentifier, inventoryCode } = req.body;
+    const { borrowerIdentifier, inventoryCode, borrowedAt, dueDate } = req.body;
 
     if (!borrowerIdentifier || !inventoryCode) {
       return res.status(400).json({
@@ -39,6 +39,8 @@ async function borrow(req, res) {
       borrowerIdentifier,
       inventoryCode,
       userId: req.user.id,
+      borrowedAt,
+      dueDate,
     });
 
     if (result.error) {

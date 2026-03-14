@@ -43,7 +43,7 @@ async function getLoanById(id) {
   });
 }
 
-async function borrowBook({ borrowerIdentifier, inventoryCode, userId }) {
+async function borrowBook({ borrowerIdentifier, inventoryCode, userId, borrowedAt, dueDate: customDueDate }) {
   // Buscar borrower por id, code o dni
   const borrower = await prisma.borrower.findFirst({
     where: {
@@ -60,7 +60,7 @@ async function borrowBook({ borrowerIdentifier, inventoryCode, userId }) {
   }
 
   if (!borrower.isActive) {
-    return { error: "Prestatario suspendido" };
+    return { error: "Prestatario suspendido. Tiene penalidades pendientes o préstamos vencidos." };
   }
 
   // Buscar bookCopy por inventoryCode
@@ -76,10 +76,35 @@ async function borrowBook({ borrowerIdentifier, inventoryCode, userId }) {
     return { error: "Ejemplar no disponible" };
   }
 
-  // Calcular dueDate según tipo de prestatario
-  const daysToAdd = borrower.type === "TEACHER" ? 15 : 7;
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + daysToAdd);
+  // Fecha de préstamo (personalizable, por defecto hoy)
+  const loanDate = borrowedAt ? new Date(borrowedAt) : new Date();
+
+  // Fecha de devolución (personalizable, por defecto según tipo de prestatario)
+  let dueDate;
+  if (customDueDate) {
+    dueDate = new Date(customDueDate);
+  } else {
+    const daysToAdd = borrower.type === "TEACHER" ? 15 : 7;
+    dueDate = new Date(loanDate);
+    dueDate.setDate(dueDate.getDate() + daysToAdd);
+  }
+
+  // Validaciones de fechas
+  if (isNaN(loanDate.getTime())) {
+    return { error: "Fecha de préstamo inválida" };
+  }
+
+  if (isNaN(dueDate.getTime())) {
+    return { error: "Fecha de devolución inválida" };
+  }
+
+  if (dueDate <= loanDate) {
+    return { error: "La fecha de devolución debe ser posterior a la fecha de préstamo" };
+  }
+
+  // Determinar estado inicial: si la fecha de devolución ya pasó, marcar como vencido
+  const now = new Date();
+  const initialStatus = dueDate < now ? "OVERDUE" : "ACTIVE";
 
   // Transaction: crear loan + marcar copia como no disponible
   const [loan] = await prisma.$transaction([
@@ -88,7 +113,9 @@ async function borrowBook({ borrowerIdentifier, inventoryCode, userId }) {
         borrowerId: borrower.id,
         bookCopyId: bookCopy.id,
         loanedBy: userId,
+        borrowedAt: loanDate,
         dueDate,
+        status: initialStatus,
       },
       include: loanIncludes,
     }),

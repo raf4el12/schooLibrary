@@ -6,17 +6,23 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import TextField from '@mui/material/TextField'
-import { useState } from 'react'
+import Alert from '@mui/material/Alert'
+import { useState, useMemo } from 'react'
 import { useBorrowers } from '../../hook/borrowers/useBorrowers'
 import { useBookCopies } from '../../hook/book-copies/useBookCopies'
 import type { Borrower } from '../../types/borrower'
 import type { BookCopy } from '../../types/book-copy'
+import type { LoanBorrowDto } from '../../types/loan'
 
 interface LoanFormProps {
   open: boolean
   onClose: () => void
-  onSubmit: (data: { borrowerIdentifier: string; inventoryCode: string }) => void
+  onSubmit: (data: LoanBorrowDto) => void
   loading?: boolean
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0]
 }
 
 export default function LoanForm({
@@ -29,7 +35,9 @@ export default function LoanForm({
   const [bookSearch, setBookSearch] = useState('')
   const [selectedBorrower, setSelectedBorrower] = useState<Borrower | null>(null)
   const [selectedCopy, setSelectedCopy] = useState<BookCopy | null>(null)
-  const [errors, setErrors] = useState<{ borrower?: string; copy?: string }>({})
+  const [borrowedAt, setBorrowedAt] = useState(formatDate(new Date()))
+  const [dueDate, setDueDate] = useState('')
+  const [errors, setErrors] = useState<{ borrower?: string; copy?: string; dates?: string }>({})
 
   const { data: borrowers, isPending: borrowersLoading } = useBorrowers(
     borrowerSearch.length >= 1 ? borrowerSearch : undefined
@@ -40,27 +48,56 @@ export default function LoanForm({
 
   const availableCopies = (bookCopies ?? []).filter((c) => c.isAvailable)
 
+  // Calcular fecha de devolución por defecto según tipo de prestatario
+  const defaultDueDate = useMemo(() => {
+    if (!selectedBorrower || !borrowedAt) return ''
+    const days = selectedBorrower.type === 'TEACHER' ? 15 : 7
+    const date = new Date(borrowedAt)
+    date.setDate(date.getDate() + days)
+    return formatDate(date)
+  }, [selectedBorrower, borrowedAt])
+
+  // Usar la fecha personalizada o la por defecto
+  const effectiveDueDate = dueDate || defaultDueDate
+
   const handleClose = () => {
     setSelectedBorrower(null)
     setSelectedCopy(null)
     setBorrowerSearch('')
     setBookSearch('')
+    setBorrowedAt(formatDate(new Date()))
+    setDueDate('')
     setErrors({})
     onClose()
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const newErrors: { borrower?: string; copy?: string } = {}
+    const newErrors: { borrower?: string; copy?: string; dates?: string } = {}
+
     if (!selectedBorrower) newErrors.borrower = 'Seleccione un prestatario'
     if (!selectedCopy) newErrors.copy = 'Seleccione un ejemplar'
+
+    if (borrowedAt && effectiveDueDate) {
+      if (new Date(effectiveDueDate) <= new Date(borrowedAt)) {
+        newErrors.dates = 'La fecha de devolución debe ser posterior a la fecha de préstamo'
+      }
+    }
+
+    if (!effectiveDueDate) {
+      newErrors.dates = 'Seleccione un prestatario para calcular la fecha de devolución'
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
     }
+
     onSubmit({
       borrowerIdentifier: selectedBorrower!.dni,
       inventoryCode: selectedCopy!.inventoryCode,
+      borrowedAt,
+      dueDate: effectiveDueDate,
     })
   }
 
@@ -69,6 +106,7 @@ export default function LoanForm({
       <form onSubmit={handleSubmit}>
         <DialogTitle>Nuevo préstamo</DialogTitle>
         <DialogContent className="flex flex-col gap-4 !pt-4">
+          {/* Prestatario */}
           <Autocomplete
             options={borrowers ?? []}
             getOptionLabel={(option) =>
@@ -77,6 +115,7 @@ export default function LoanForm({
             value={selectedBorrower}
             onChange={(_e, value) => {
               setSelectedBorrower(value)
+              setDueDate('')
               setErrors((prev) => ({ ...prev, borrower: undefined }))
             }}
             onInputChange={(_e, value) => setBorrowerSearch(value)}
@@ -123,6 +162,7 @@ export default function LoanForm({
             )}
           />
 
+          {/* Ejemplar */}
           <Autocomplete
             options={availableCopies}
             getOptionLabel={(option) =>
@@ -175,6 +215,50 @@ export default function LoanForm({
               />
             )}
           />
+
+          {/* Fechas */}
+          <div className="grid grid-cols-2 gap-3">
+            <TextField
+              label="Fecha de préstamo"
+              type="date"
+              value={borrowedAt}
+              onChange={(e) => {
+                setBorrowedAt(e.target.value)
+                setDueDate('')
+                setErrors((prev) => ({ ...prev, dates: undefined }))
+              }}
+              slotProps={{ inputLabel: { shrink: true } }}
+              fullWidth
+            />
+            <TextField
+              label="Fecha de devolución"
+              type="date"
+              value={effectiveDueDate}
+              onChange={(e) => {
+                setDueDate(e.target.value)
+                setErrors((prev) => ({ ...prev, dates: undefined }))
+              }}
+              slotProps={{
+                inputLabel: { shrink: true },
+                htmlInput: { min: borrowedAt },
+              }}
+              fullWidth
+            />
+          </div>
+
+          {selectedBorrower && !dueDate && (
+            <Alert severity="info" sx={{ py: 0.5, fontSize: '12px' }}>
+              Plazo automático: {selectedBorrower.type === 'TEACHER' ? '15' : '7'} días
+              ({selectedBorrower.type === 'TEACHER' ? 'Profesor' : 'Estudiante'}).
+              Puedes cambiar la fecha manualmente.
+            </Alert>
+          )}
+
+          {errors.dates && (
+            <Alert severity="error" sx={{ py: 0.5, fontSize: '12px' }}>
+              {errors.dates}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} disabled={loading}>

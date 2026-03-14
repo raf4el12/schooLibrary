@@ -1,1 +1,158 @@
 @import "tailwindcss";
+
+:root {
+  --sidebar-w: 272px;
+  --clr-primary: #0d9488;
+  --clr-primary-light: #14b8a6;
+  --clr-primary-dark: #0f766e;
+  --clr-bg: #f8f7f4;
+  --clr-surface: #ffffff;
+  --clr-text: #1e293b;
+  --clr-text-secondary: #64748b;
+  --clr-border: #e8e5df;
+  --clr-sidebar-bg: #1a1a2e;
+  --clr-sidebar-hover: rgba(255, 255, 255, 0.05);
+  --clr-sidebar-active: rgba(13, 148, 136, 0.15);
+  --clr-accent: #f59e0b;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1cdc6;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b0aca5;
+}
+
+/* Display font for headings */
+.font-display {
+  font-family: 'Instrument Serif', Georgia, serif;
+}
+
+/* Stat number styling */
+.stat-value {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Table styles */
+.data-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--clr-text-secondary);
+  padding: 12px 16px;
+  background: #f8f7f4;
+  border-bottom: 1px solid var(--clr-border);
+}
+.data-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1eeea;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+.data-table tbody tr:hover {
+  background: #faf9f6;
+}
+
+/* Sidebar nav link transition */
+.sidebar-link {
+  transition: all 0.15s ease;
+  border-radius: 10px;
+  position: relative;
+}
+.sidebar-link:hover {
+  background: var(--clr-sidebar-hover);
+}
+.sidebar-link.active {
+  background: var(--clr-sidebar-active);
+}
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--clr-primary);
+  border-radius: 0 3px 3px 0;
+}
+
+/* MUI overrides for warmer feel */
+.MuiCard-root {
+  border-color: var(--clr-border) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+.MuiChip-outlined {
+  border-color: var(--clr-border) !important;
+}
+.MuiDialog-paper {
+  border-radius: 16px !important;
+}
+
+/* Page title */
+.page-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--clr-text);
+  letter-spacing: -0.01em;
+}
+
+/* Warm badge/pill */
+.badge-warm {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease-out forwards;
+}

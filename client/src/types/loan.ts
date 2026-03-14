@@ -37,6 +37,8 @@ export interface Penalty {
 export const loanBorrowSchema = z.object({
   borrowerIdentifier: z.string().min(1, 'Seleccione un prestatario'),
   inventoryCode: z.string().min(1, 'Ingrese el código de inventario'),
+  borrowedAt: z.string().optional(),
+  dueDate: z.string().optional(),
 })
 
 export type LoanBorrowDto = z.infer<typeof loanBorrowSchema>
