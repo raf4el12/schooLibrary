@@ -23,6 +23,7 @@ async function getAllLoans(query = {}) {
     where.OR = [
       { borrower: { name: { contains: search, mode: "insensitive" } } },
       { borrower: { code: { contains: search, mode: "insensitive" } } },
+      { borrower: { dni: { contains: search, mode: "insensitive" } } },
       { bookCopy: { inventoryCode: { contains: search, mode: "insensitive" } } },
       { bookCopy: { book: { title: { contains: search, mode: "insensitive" } } } },
     ];
@@ -43,12 +44,13 @@ async function getLoanById(id) {
 }
 
 async function borrowBook({ borrowerIdentifier, inventoryCode, userId }) {
-  // Buscar borrower por id o code
+  // Buscar borrower por id, code o dni
   const borrower = await prisma.borrower.findFirst({
     where: {
       OR: [
         { id: borrowerIdentifier },
         { code: borrowerIdentifier },
+        { dni: borrowerIdentifier },
       ],
     },
   });

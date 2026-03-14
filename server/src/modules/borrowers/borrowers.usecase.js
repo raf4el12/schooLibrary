@@ -28,6 +28,7 @@ async function getAllBorrowers(query = {}) {
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
       { code: { contains: search, mode: "insensitive" } },
+      { dni: { contains: search, mode: "insensitive" } },
       { grade: { contains: search, mode: "insensitive" } },
     ];
   }
@@ -70,6 +71,7 @@ async function createBorrower(data) {
   return prisma.borrower.create({
     data: {
       code,
+      dni: data.dni,
       name: data.name,
       email: data.email || null,
       grade: data.grade || null,
@@ -84,6 +86,7 @@ async function updateBorrower(id, data) {
 
   const updateData = {};
   if (data.name !== undefined) updateData.name = data.name;
+  if (data.dni !== undefined) updateData.dni = data.dni;
   if (data.email !== undefined) updateData.email = data.email || null;
   if (data.grade !== undefined) updateData.grade = data.grade || null;
   if (data.type !== undefined) updateData.type = data.type;

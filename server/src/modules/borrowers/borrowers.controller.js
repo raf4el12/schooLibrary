@@ -27,17 +27,22 @@ async function getById(req, res) {
 
 async function create(req, res) {
   try {
-    const { name, email, grade, type } = req.body;
+    const { name, dni, email, grade, type } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: "El nombre es requerido" });
     }
 
-    const borrower = await borrowersUsecase.createBorrower({ name, email, grade, type });
+    if (!dni) {
+      return res.status(400).json({ message: "El DNI es requerido" });
+    }
+
+    const borrower = await borrowersUsecase.createBorrower({ name, dni, email, grade, type });
     res.status(201).json(borrower);
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "Ya existe un prestatario con ese email" });
+      const field = error.meta?.target?.includes("dni") ? "DNI" : "email";
+      return res.status(409).json({ message: `Ya existe un prestatario con ese ${field}` });
     }
     console.error("Error creating borrower:", error.message);
     res.status(500).json({ message: "Error interno del servidor" });
@@ -55,7 +60,8 @@ async function update(req, res) {
     res.json(borrower);
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "Ya existe un prestatario con ese email" });
+      const field = error.meta?.target?.includes("dni") ? "DNI" : "email";
+      return res.status(409).json({ message: `Ya existe un prestatario con ese ${field}` });
     }
     console.error("Error updating borrower:", error.message);
     res.status(500).json({ message: "Error interno del servidor" });

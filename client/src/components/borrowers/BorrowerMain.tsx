@@ -48,7 +48,7 @@ export default function BorrowerMain() {
       <div className="mb-4">
         <TextField
           size="small"
-          placeholder="Buscar por nombre, código, email o grado..."
+          placeholder="Buscar por nombre, DNI, código, email o grado..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           slotProps={{
@@ -75,6 +75,7 @@ export default function BorrowerMain() {
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
                   <th className="text-left px-4 py-3">Código</th>
+                  <th className="text-left px-4 py-3">DNI</th>
                   <th className="text-left px-4 py-3">Nombre</th>
                   <th className="text-left px-4 py-3">Email</th>
                   <th className="text-left px-4 py-3">Grado</th>
@@ -87,6 +88,7 @@ export default function BorrowerMain() {
                 {borrowers.map((b) => (
                   <tr key={b.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono font-medium">{b.code}</td>
+                    <td className="px-4 py-3 font-mono">{b.dni}</td>
                     <td className="px-4 py-3 font-medium">{b.name}</td>
                     <td className="px-4 py-3 text-gray-500">
                       {b.email || '—'}
@@ -125,7 +127,7 @@ export default function BorrowerMain() {
                 {borrowers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-4 py-8 text-center text-gray-400"
                     >
                       No se encontraron prestatarios

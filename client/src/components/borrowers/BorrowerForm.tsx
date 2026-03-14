@@ -38,12 +38,13 @@ export default function BorrowerForm({
     if (editData) {
       reset({
         name: editData.name,
+        dni: editData.dni,
         email: editData.email ?? '',
         grade: editData.grade ?? '',
         type: editData.type,
       })
     } else {
-      reset({ name: '', email: '', grade: '', type: 'STUDENT' })
+      reset({ name: '', dni: '', email: '', grade: '', type: 'STUDENT' })
     }
   }, [editData, reset, open])
 
@@ -60,6 +61,13 @@ export default function BorrowerForm({
             {...register('name')}
             error={!!errors.name}
             helperText={errors.name?.message}
+          />
+          <TextField
+            label="DNI"
+            fullWidth
+            {...register('dni')}
+            error={!!errors.dni}
+            helperText={errors.dni?.message}
           />
           <TextField
             label="Email (opcional)"

@@ -118,7 +118,7 @@ export default function LoanMain() {
                     <td className="px-4 py-3">
                       {loan.borrower?.name}
                       <span className="text-gray-400 ml-1 text-xs">
-                        ({loan.borrower?.code})
+                        (DNI: {loan.borrower?.dni})
                       </span>
                     </td>
                     <td className="px-4 py-3">

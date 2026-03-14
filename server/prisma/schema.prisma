@@ -105,6 +105,7 @@ model BookCopy {
 model Borrower {
   id        String       @id @default(uuid())
   code      String       @unique // Código de identificación rápida (ej. "EST-001", "DOC-005")
+  dni       String       @unique // Documento Nacional de Identidad
   name      String
   email     String?      @unique
   grade     String?      // Salón o grado (ej. "4to Secundaria")
